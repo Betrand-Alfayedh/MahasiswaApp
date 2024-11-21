@@ -27,15 +27,19 @@ class MainActivity : AppCompatActivity() {
         databaseHelper = DatabaseHelper(this)
         mahasiswaAdapter = MahasiswaAdapter(
             mutableListOf(),
-            { mahasiswa ->
-                val intent = Intent(this, AddEditActivity::class.java)
-                intent.putExtra("EXTRA_ID", mahasiswa.id)
-                intent.putExtra("EXTRA_NAMA", mahasiswa.nama)
-                intent.putExtra("EXTRA_NIM", mahasiswa.nim)
-                intent.putExtra("EXTRA_JURUSAN", mahasiswa.jurusan)
+            this,
+            onEditClick = { mahasiswa ->
+                // Handle edit button click
+                val intent = Intent(this, EditActivity::class.java).apply {
+                    putExtra("EXTRA_ID", mahasiswa.id)
+                    putExtra("EXTRA_NAMA", mahasiswa.nama)
+                    putExtra("EXTRA_NIM", mahasiswa.nim)
+                    putExtra("EXTRA_JURUSAN", mahasiswa.jurusan)
+                }
                 startActivity(intent)
             },
-            { mahasiswa ->
+            onDeleteClick = { mahasiswa ->
+                // Handle delete button click
                 showDeleteConfirmationDialog(mahasiswa)
             }
         )
@@ -45,10 +49,15 @@ class MainActivity : AppCompatActivity() {
             adapter = mahasiswaAdapter
         }
 
+        // Set hint for SearchView
+        binding.searchView.queryHint = "Cari Mahasiswa"
+
+        // Handle click on Floating Action Button (FAB) to add new mahasiswa
         binding.fab.setOnClickListener {
-            startActivity(Intent(this, AddEditActivity::class.java))
+            startActivity(Intent(this, AddActivity::class.java))
         }
 
+        // Set up search functionality for filtering mahasiswa
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
@@ -59,6 +68,19 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         })
+        binding.searchView.setOnClickListener {
+            binding.searchView.isIconified = false // Makes sure the SearchView is expanded when clicked
+        }
+
+        // Handle click on RecyclerView item for detail view
+        mahasiswaAdapter.setOnItemClickListener { mahasiswa ->
+            val intent = Intent(this, DetailActivity::class.java).apply {
+                putExtra("nama", mahasiswa.nama)
+                putExtra("nim", mahasiswa.nim)
+                putExtra("jurusan", mahasiswa.jurusan)
+            }
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {
@@ -66,11 +88,13 @@ class MainActivity : AppCompatActivity() {
         loadMahasiswa()
     }
 
+    // Load the mahasiswa data from database and update RecyclerView
     private fun loadMahasiswa() {
         val mahasiswaList = databaseHelper.getAllMahasiswa()
         mahasiswaAdapter.updateData(mahasiswaList)
     }
 
+    // Filter mahasiswa based on query text
     private fun filterMahasiswa(query: String?) {
         val allMahasiswa = databaseHelper.getAllMahasiswa()
         val filteredList = allMahasiswa.filter {
@@ -81,6 +105,7 @@ class MainActivity : AppCompatActivity() {
         mahasiswaAdapter.updateData(filteredList)
     }
 
+    // Show confirmation dialog for deleting mahasiswa
     private fun showDeleteConfirmationDialog(mahasiswa: Mahasiswa) {
         AlertDialog.Builder(this).apply {
             setTitle("Hapus Mahasiswa")
@@ -89,7 +114,7 @@ class MainActivity : AppCompatActivity() {
                 val deletedRows = databaseHelper.deleteMahasiswa(mahasiswa.id)
                 if (deletedRows > 0) {
                     Toast.makeText(this@MainActivity, "Mahasiswa berhasil dihapus", Toast.LENGTH_SHORT).show()
-                    loadMahasiswa()
+                    loadMahasiswa() // Reload mahasiswa list after delete
                 } else {
                     Toast.makeText(this@MainActivity, "Gagal menghapus mahasiswa", Toast.LENGTH_SHORT).show()
                 }

@@ -13,23 +13,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MahasiswaApp"
         tools:targetApi="31">
-
-        <!-- MainActivity deklarasi -->
+        <activity
+            android:name=".EditActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AddActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DetailActivity"
+            android:exported="false" /> <!-- MainActivity deklarasi -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- AddEditActivity deklarasi -->
+        </activity> <!-- AddEditActivity deklarasi -->
         <activity
             android:name=".AddEditActivity"
-            android:exported="true">
-        </activity>
-
+            android:exported="true" />
     </application>
 
 </manifest>
